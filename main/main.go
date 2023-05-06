@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"sexreflection/pkg/confidential"
+	"sexreflection/pkg/mask"
 )
 
 type Test struct {
@@ -36,15 +38,21 @@ func main() {
 
 	fmt.Println(string(j))
 
-	//structMaskConfig := confidential.Config{
-	//	Tags:     nil,
-	//	Mappers:  nil,
-	//	Handlers: nil,
-	//}
-	//
-	//
-	//masked := confidential.Proceed(tst)
-	//
-	//jsn, _ := json.Marshal(masked)
-	//fmt.Println(string(jsn))
+	structMaskMappers := confidential.Mapper{
+		"cvv":        mask.CVV,
+		"cardnumber": mask.CardNumber,
+		"cardholder": mask.CardHolder,
+		"def":        mask.Default,
+		"ip":         mask.IP,
+	}
+
+	confidential.InitStructMask(&confidential.Config{
+		TagName: "confidential",
+		Mappers: structMaskMappers,
+	})
+
+	masked := confidential.StructMasker.Proceed(tst)
+
+	jsn, _ := json.Marshal(masked)
+	fmt.Println(string(jsn))
 }

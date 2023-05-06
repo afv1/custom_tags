@@ -9,13 +9,13 @@ const (
 	cardHolder = "CARD HOLDER"
 )
 
-func Default() string {
+func Default(_ string) string {
 	return def
 }
 
 // CVV returns mask for CVV/CVS code.
 // Example: ***.
-func CVV() string {
+func CVV(_ string) string {
 	return cvv
 }
 
@@ -34,7 +34,7 @@ func CardNumber(input string) string {
 }
 
 // CardHolder returns "CARD HOLDER".
-func CardHolder() string {
+func CardHolder(_ string) string {
 	return cardHolder
 }
 

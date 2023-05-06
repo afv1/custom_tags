@@ -12,9 +12,9 @@ const (
 	ip         = "ip"
 )
 
-// Active confidential tags.
+// Tags contains all active confidential tags.
 // Used to increase parsing speed.
-var tags = []string{
+var Tags = []string{
 	def,
 	cvv,
 	cardNumber,
