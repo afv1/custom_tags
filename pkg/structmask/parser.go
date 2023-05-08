@@ -1,10 +1,9 @@
-package confidential
+package structmask
 
 import (
 	"reflect"
 )
 
-// You don't need to deal with it, really
 // __parse parse data recursively, mask fields if confidential tags presented.
 func (sm *SM) __parse(field string, v reflect.Value, tag string) reflect.Value {
 	var (
@@ -55,7 +54,7 @@ func (sm *SM) __parse(field string, v reflect.Value, tag string) reflect.Value {
 		}
 	case reflect.String:
 		cpVal = reflect.New(orig.Type())
-		cpVal.Elem().SetString(sm.__mask(v.String(), tag))
+		cpVal.Elem().SetString(sm.__handle(v.String(), tag))
 	case reflect.Slice, reflect.Array:
 		cpVal = reflect.MakeSlice(orig.Type(), orig.Len(), orig.Cap())
 
@@ -77,7 +76,7 @@ func (sm *SM) __parse(field string, v reflect.Value, tag string) reflect.Value {
 		// try to mask data if interface{}'s underlying value is string.
 		s, ok := v.Interface().(string)
 		if ok {
-			cpVal.Elem().Set(reflect.ValueOf(sm.__mask(s, tag)))
+			cpVal.Elem().Set(reflect.ValueOf(sm.__handle(s, tag)))
 		} else {
 			cpVal.Elem().Set(orig)
 		}
@@ -100,9 +99,9 @@ func (sm *SM) __adjust(k reflect.Kind, v reflect.Value) reflect.Value {
 	}
 }
 
-// __mask returns correct mask according to tag.
+// __handle returns string parsed with Handler according to tag.
 // If tag is empty, returns initial string.
-func (sm *SM) __mask(input string, tag string) string {
+func (sm *SM) __handle(input string, tag string) string {
 	if handler := StructMasker.getHandler(tag); handler != nil {
 		return handler(input)
 	}

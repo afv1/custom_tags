@@ -1,4 +1,4 @@
-package confidential
+package structmask
 
 import "reflect"
 
