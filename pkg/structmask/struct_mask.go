@@ -2,7 +2,7 @@ package structmask
 
 import "reflect"
 
-// Handler have to be func(string)string
+// Handler is func(string)string
 type Handler func(string) string
 
 // Mapper is a map[label]handler_func
