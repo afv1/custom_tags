@@ -1,6 +1,6 @@
 # structmasker
 
-Simple Golang Struct fields masking pkg
+Simple Golang Struct fields masking pkg with customizable mask handlers for every tag label
 
 # Getting started
 
