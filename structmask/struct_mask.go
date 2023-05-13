@@ -2,10 +2,10 @@ package structmask
 
 import "reflect"
 
-// Handler is func(string)string
+// Handler is a func(string)string.
 type Handler func(string) string
 
-// Mapper is a map[label]handler_func
+// Mapper is a map[label]handler_func.
 type Mapper map[string]Handler
 
 type SM struct {
@@ -28,8 +28,16 @@ type StructMask interface {
 
 var StructMasker StructMask
 
+// InitStructMask inits global StructMasker.
+// Example: structmask.InitStructMask(cfg); structmask.StructMasker.Proceed(model)
 func InitStructMask(cfg *Config) {
 	StructMasker = newSM(cfg)
+}
+
+// NewStructMask returns StructMask instance for Instant or Dependency Injection usage.
+// Example: sm := structmask.NewStructMask(cfg); sm.Proceed(model)
+func NewStructMask(cfg *Config) *SM {
+	return newSM(cfg)
 }
 
 // getHandler returns Handler or nil
@@ -38,7 +46,7 @@ func (sm *SM) getHandler(tag string) Handler {
 }
 
 // Proceed replace tagged fields of struct with correct masks
-// Tag example: `confidential:"cvv"`.
+// Tag example: `mask:"cvv"`.
 func (sm *SM) Proceed(input any) any {
 	if input == nil ||
 		(reflect.ValueOf(input).Kind() != reflect.Struct &&
