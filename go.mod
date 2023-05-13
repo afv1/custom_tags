@@ -1,3 +1,3 @@
-module cardmasker
+module structmasker
 
 go 1.20
