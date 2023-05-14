@@ -30,7 +30,7 @@ type EGStruct struct {
 	CVV         string `json:"cvv" mask:"cvv"`
 }
 
-// CardMaskHandler must implement structmask.Handler
+// CardMaskHandler must implement structmask.Handler.
 func CardMaskHandler(input string) string {
 	const (
 		binLength  = 6
@@ -56,7 +56,7 @@ func CardMaskHandler(input string) string {
 	return bin + mask + tail
 }
 
-// CVVMaskHandler must implement structmask.Handler
+// CVVMaskHandler must implement structmask.Handler.
 func CVVMaskHandler(_ string) string {
 	return "***"
 }
