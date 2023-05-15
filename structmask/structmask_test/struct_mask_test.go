@@ -1,9 +1,9 @@
 package structmask_test
 
 import (
-	"cardmasker/structmask"
 	"encoding/json"
 	"fmt"
+	"github.com/afv1/structmasker/structmask"
 	"strings"
 )
 
