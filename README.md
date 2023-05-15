@@ -32,28 +32,22 @@ type EGStruct struct {
 
 // CardMaskHandler must implement structmask.Handler
 func CardMaskHandler(input string) string {
-	const (
-		binLength  = 6
-		tailLength = 4
-		maskSymbol = "*"
-		cardNumber = "CARD NUMBER"
-	)
+    input = strings.ReplaceAll(input, " ", "")
 
-	input = strings.ReplaceAll(input, " ", "")
-
-	cardNumberLength := len(input)
-	if cardNumberLength != 16 {
-		return cardNumber
-	}
-
-	bin := input[:binLength]
-	tail := input[cardNumberLength-tailLength:]
-	mask := ""
-	if maskLength := cardNumberLength - binLength - tailLength; maskLength > 0 {
-		mask = strings.Repeat(maskSymbol, maskLength)
-	}
-
-	return bin + mask + tail
+    const (
+        binLn = 6
+        tailLn = 4
+        symbol = "*"
+    )
+    
+    maskLn := len(input) - binLn - tailLn
+    
+    exp := fmt.Sprintf(`(\d{%d}).*(\d{%d})`, binLn, tailLn)
+    repl := "$1" + strings.Repeat(symbol, maskLn) + "$2"
+    
+    reg, _ := regexp.Compile(exp)
+    
+    return string(reg.ReplaceAll([]byte(input), []byte(repl)))
 }
 
 // CVVMaskHandler must implement structmask.Handler
