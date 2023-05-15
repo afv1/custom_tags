@@ -23,11 +23,11 @@ import (
 
 // EGStruct define maskable struct.
 type EGStruct struct {
-	Number      string `json:"card_number" mask:"cardnumber"`
-	Holder      string `json:"card_holder"`
-	ExpireMonth string `json:"expire_month"`
-	ExpireYear  string `json:"expire_year"`
-	CVV         string `json:"cvv" mask:"cvv"`
+    Number      string `json:"card_number" mask:"cardnumber"`
+    Holder      string `json:"card_holder"`
+    ExpireMonth string `json:"expire_month"`
+    ExpireYear  string `json:"expire_year"`
+    CVV         string `json:"cvv" mask:"cvv"`
 }
 
 // CardMaskHandler must implement structmask.Handler.
@@ -56,35 +56,35 @@ func CVVMaskHandler(_ string) string {
 }
 
 func main() {
-	// create struct instance.
-	egStruct := EGStruct{
-		Number:      "0000 0000 0000 0000",
-		Holder:      "TEST DEV",
-		ExpireMonth: "05",
-		ExpireYear:  "25",
-		CVV:         "123",
-	}
-
-	// define mappers.
-	structMaskMappers := structmask.Mapper{
-		"cvv":        CVVMaskHandler,
-		"cardnumber": CardMaskHandler,
-	}
-
-	// init StructMask with config.
-	structmask.InitStructMask(&structmask.Config{
-		TagName: "mask",
-		Mappers: structMaskMappers,
-	})
-
-	// print initial marshaled struct.
-	initialJSON, _ := json.Marshal(egStruct)
-	fmt.Println(string(initialJSON))
-
-	// print masked marshaled struct.
-	maskedJSON := structmask.StructMasker.Proceed(egStruct)
-	jsn, _ := json.Marshal(maskedJSON)
-	fmt.Println(string(jsn))
+    // create struct instance.
+    egStruct := EGStruct{
+        Number:      "0000 0000 0000 0000",
+        Holder:      "TEST DEV",
+        ExpireMonth: "05",
+        ExpireYear:  "25",
+        CVV:         "123",
+    }
+    
+    // define mappers.
+    structMaskMappers := structmask.Mapper{
+        "cvv":        CVVMaskHandler,
+        "cardnumber": CardMaskHandler,
+    }
+    
+    // init StructMask with config.
+    structmask.InitStructMask(&structmask.Config{
+        TagName: "mask",
+        Mappers: structMaskMappers,
+    })
+    
+    // print initial marshaled struct.
+    initialJSON, _ := json.Marshal(egStruct)
+    fmt.Println(string(initialJSON))
+    
+    // print masked marshaled struct.
+    maskedJSON := structmask.StructMasker.Proceed(egStruct)
+    jsn, _ := json.Marshal(maskedJSON)
+    fmt.Println(string(jsn))
 }
 ```
 
