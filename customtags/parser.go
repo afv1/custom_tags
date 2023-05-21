@@ -1,11 +1,11 @@
-package structmask
+package customtags
 
 import (
 	"reflect"
 )
 
 // __normalize returns correct reflect values according to its kind.
-func (sm *SM) __normalize(k reflect.Kind, v reflect.Value) reflect.Value {
+func (c *CT) __normalize(k reflect.Kind, v reflect.Value) reflect.Value {
 	switch k {
 	case reflect.Map, reflect.Slice, reflect.Array, reflect.Ptr:
 		return v
@@ -15,7 +15,7 @@ func (sm *SM) __normalize(k reflect.Kind, v reflect.Value) reflect.Value {
 }
 
 // __parse parse data recursively, modify fields data if custom tag labels presented.
-func (sm *SM) __parse(field string, v reflect.Value, tag string) reflect.Value {
+func (c *CT) __parse(field string, v reflect.Value, tag string) reflect.Value {
 	var (
 		orig  = v
 		cpVal reflect.Value
@@ -52,14 +52,14 @@ func (sm *SM) __parse(field string, v reflect.Value, tag string) reflect.Value {
 			}
 
 			// get custom tag label.
-			label := f.Tag.Get(sm.tag)
+			label := f.Tag.Get(c.tag)
 			// if field type's kind is ptr or string, cast modified data to interface{} and then to initial type,
 			// only after type casting set modified value to copied struct field.
 			if fVal.Type().Kind() == reflect.Ptr && fVal.Elem().Kind() == reflect.String {
-				s := sm.__parse(f.Name, fVal.Elem(), label).Interface().(string)
+				s := c.__parse(f.Name, fVal.Elem(), label).Interface().(string)
 				cpVal.Elem().Field(i).Set(reflect.ValueOf(&s))
 			} else {
-				cpVal.Elem().Field(i).Set(sm.__parse(f.Name, fVal, label))
+				cpVal.Elem().Field(i).Set(c.__parse(f.Name, fVal, label))
 			}
 		}
 	case reflect.Slice, reflect.Array:
@@ -67,7 +67,7 @@ func (sm *SM) __parse(field string, v reflect.Value, tag string) reflect.Value {
 
 		// slice/array values could not have tags.
 		for i := 0; i < orig.Len(); i++ {
-			cpVal.Index(i).Set(sm.__parse(field, orig.Index(i), ""))
+			cpVal.Index(i).Set(c.__parse(field, orig.Index(i), ""))
 		}
 	case reflect.Map:
 		cpVal = reflect.MakeMap(orig.Type())
@@ -75,27 +75,27 @@ func (sm *SM) __parse(field string, v reflect.Value, tag string) reflect.Value {
 
 		// map values could not have tags.
 		for i := 0; i < orig.Len(); i++ {
-			cpVal.SetMapIndex(keys[i], sm.__parse(keys[i].String(), orig.MapIndex(keys[i]), ""))
+			cpVal.SetMapIndex(keys[i], c.__parse(keys[i].String(), orig.MapIndex(keys[i]), ""))
 		}
 	default:
 		cpVal = reflect.New(orig.Type())
 
-		if modVal, ok := sm.__handle(v.Interface(), tag); ok {
+		if modVal, ok := c.__handle(v.Interface(), tag); ok {
 			cpVal.Elem().Set(reflect.ValueOf(modVal))
 		} else {
 			cpVal.Elem().Set(orig)
 		}
 	}
 
-	return sm.__normalize(v.Kind(), cpVal)
+	return c.__normalize(v.Kind(), cpVal)
 }
 
 // __handle returns field's value parsed with Handler according to tag label.
 // If it is empty, returns initial value.
-func (sm *SM) __handle(input any, tag string) (any, bool) {
+func (c *CT) __handle(input any, tag string) (any, bool) {
 	inputKind := reflect.TypeOf(input).Kind()
 
-	if handler, ok := StructMasker.getHandler(tag); ok {
+	if handler, ok := CustomTagger.getHandler(tag); ok {
 		result := handler(input)
 		resultKind := reflect.TypeOf(result).Kind()
 

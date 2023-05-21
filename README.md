@@ -15,7 +15,7 @@ Example:
 package main
 
 import (
-	"cardmasker/structmask"
+	customtags "custom_tags/structmask"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -65,26 +65,22 @@ func main() {
         CVV:         "123",
     }
     
-    // define mappers.
-    structMaskMappers := structmask.Mapper{
-        "cvv":        CVVMaskHandler,
-        "cardnumber": CardMaskHandler,
-    }
-    
-    // init StructMask with config.
-    structmask.InitStructMask(&structmask.Config{
-        TagName: "mask",
-        Mappers: structMaskMappers,
-    })
-    
-    // print initial marshaled struct.
-    initialJSON, _ := json.Marshal(egStruct)
-    fmt.Println(string(initialJSON))
-    
-    // print masked marshaled struct.
-    maskedJSON := structmask.StructMasker.Proceed(egStruct)
-    jsn, _ := json.Marshal(maskedJSON)
-    fmt.Println(string(jsn))
+    // init Custom Tags with tag name.
+    ct := customtags.NewCustomTags("mask")
+	customtags.Bind("test", Test1)
+	
+	// bind handlers to custom tag labels.
+	customtags.Bind("cardnumber", CardMaskHandler)
+	customtags.Bind("cardholder", CardHolderHandler)
+
+	// print initial marshaled struct.
+	initialJSON, _ := json.Marshal(egStruct)
+	fmt.Println(string(initialJSON))
+
+	// print masked marshaled struct.
+	modifiedJSON := ct.Modify(egStruct)
+	jsn, _ := json.Marshal(modifiedJSON)
+	fmt.Println(string(jsn))
 }
 ```
 
