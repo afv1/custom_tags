@@ -51,7 +51,7 @@ func Example() {
 	fmt.Println(string(initialJSON))
 
 	// print masked marshaled struct.
-	maskedJSON := ct.Modify(eg)
+	maskedJSON := ct.Proceed(eg)
 	jsn, _ := json.Marshal(maskedJSON)
 	fmt.Println(string(jsn))
 

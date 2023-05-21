@@ -23,19 +23,19 @@ type CustomTags interface {
 	bind(key string, fn Handler)
 	getHandler(tag string) (fn Handler, ok bool)
 
-	Modify(input any) (output any)
+	Proceed(input any) (output any)
 }
 
 var CustomTagger CustomTags
 
 // InitCustomTags inits global CustomTagger.
-// Example: customtags.InitCustomTags(cfg); customtags.CustomTagger.Modify(model)
+// Example: customtags.InitCustomTags(cfg); customtags.CustomTagger.Proceed(model)
 func InitCustomTags(key string) {
 	CustomTagger = newSM(key)
 }
 
 // NewCustomTags returns CustomTags instance for Instant or Dependency Injection usage.
-// Example: sm := customtags.NewCustomTags(cfg); sm.Modify(model)
+// Example: sm := customtags.NewCustomTags(cfg); sm.Proceed(model)
 func NewCustomTags(key string) *CT {
 	sm := newSM(key)
 
@@ -74,8 +74,8 @@ func Bind[T any](label string, fn func(T) T) {
 	CustomTagger.bind(label, afn)
 }
 
-// Modify replace tagged fields of the struct with modified by the Handler data.
-func (c *CT) Modify(input any) any {
+// Proceed replace tagged fields of the struct with modified by the Handler data.
+func (c *CT) Proceed(input any) any {
 	if input == nil ||
 		(reflect.ValueOf(input).Kind() != reflect.Struct &&
 			reflect.ValueOf(input).Kind() != reflect.Ptr) {
