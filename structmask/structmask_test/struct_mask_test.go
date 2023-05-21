@@ -60,7 +60,7 @@ func Example() {
 
 	// marshal initial and masked structs.
 	initialJSON, _ := json.Marshal(eg)
-	maskedJSON, _ := json.Marshal(structmask.StructMasker.Proceed(eg))
+	maskedJSON, _ := json.Marshal(structmask.StructMasker.Modify(eg))
 
 	// print.
 	fmt.Println(string(initialJSON))

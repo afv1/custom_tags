@@ -4,7 +4,17 @@ import (
 	"reflect"
 )
 
-// __parse parse data recursively, mask fields if confidential tags presented.
+// __normalize returns correct reflect values according to its kind.
+func (sm *SM) __normalize(k reflect.Kind, v reflect.Value) reflect.Value {
+	switch k {
+	case reflect.Map, reflect.Slice, reflect.Array, reflect.Ptr:
+		return v
+	default:
+		return v.Elem()
+	}
+}
+
+// __parse parse data recursively, modify fields data if custom tag labels presented.
 func (sm *SM) __parse(field string, v reflect.Value, tag string) reflect.Value {
 	var (
 		orig  = v
@@ -21,17 +31,17 @@ func (sm *SM) __parse(field string, v reflect.Value, tag string) reflect.Value {
 	}
 
 	// initial tag = "", but since initial value v could be struct or *struct only,
-	// first iteration always get to Struct case, otherwise tag value always valid.
+	// first iteration always get to Struct case.
 	switch orig.Kind() {
 	case reflect.Struct:
 		// copy type of original entity.
 		t := orig.Type()
-		// get new ptr of just created entity with original entity's type.
+		// get new ptr of created entity with original entity's type.
 		cpVal = reflect.New(t)
 
-		// iterate over struct fields
+		// iterate over struct fields.
 		for i := 0; i < t.NumField(); i++ {
-			// get copied struct type's field i .
+			// get copied struct type's field i.
 			f := t.Field(i)
 			// get original struct type's field i.
 			fVal := orig.Field(i)
@@ -41,20 +51,17 @@ func (sm *SM) __parse(field string, v reflect.Value, tag string) reflect.Value {
 				continue
 			}
 
-			// get confidential tag value
-			tagVal := f.Tag.Get(sm.cfg.TagName)
-			// if field type's kind is ptr or string, cast masked data to interface{} and then to string,
-			// only after type casting set masked value to copied struct field.
+			// get custom tag label.
+			label := f.Tag.Get(sm.tag)
+			// if field type's kind is ptr or string, cast modified data to interface{} and then to initial type,
+			// only after type casting set modified value to copied struct field.
 			if fVal.Type().Kind() == reflect.Ptr && fVal.Elem().Kind() == reflect.String {
-				s := sm.__parse(f.Name, fVal.Elem(), tagVal).Interface().(string)
+				s := sm.__parse(f.Name, fVal.Elem(), label).Interface().(string)
 				cpVal.Elem().Field(i).Set(reflect.ValueOf(&s))
 			} else {
-				cpVal.Elem().Field(i).Set(sm.__parse(f.Name, fVal, tagVal))
+				cpVal.Elem().Field(i).Set(sm.__parse(f.Name, fVal, label))
 			}
 		}
-	case reflect.String:
-		cpVal = reflect.New(orig.Type())
-		cpVal.Elem().SetString(sm.__handle(v.String(), tag))
 	case reflect.Slice, reflect.Array:
 		cpVal = reflect.MakeSlice(orig.Type(), orig.Len(), orig.Cap())
 
@@ -70,41 +77,32 @@ func (sm *SM) __parse(field string, v reflect.Value, tag string) reflect.Value {
 		for i := 0; i < orig.Len(); i++ {
 			cpVal.SetMapIndex(keys[i], sm.__parse(keys[i].String(), orig.MapIndex(keys[i]), ""))
 		}
-	case reflect.Interface:
+	default:
 		cpVal = reflect.New(orig.Type())
 
-		// try to mask data if interface{}'s underlying value is string.
-		s, ok := v.Interface().(string)
-		if ok {
-			cpVal.Elem().Set(reflect.ValueOf(sm.__handle(s, tag)))
+		if modVal, ok := sm.__handle(v.Interface(), tag); ok {
+			cpVal.Elem().Set(reflect.ValueOf(modVal))
 		} else {
 			cpVal.Elem().Set(orig)
 		}
-	default:
-		// just copy original values to copied struct type.
-		cpVal = reflect.New(orig.Type())
-		cpVal.Elem().Set(orig)
 	}
 
-	return sm.__adjust(v.Kind(), cpVal)
+	return sm.__normalize(v.Kind(), cpVal)
 }
 
-// __adjust returns correct reflect values according to its kind.
-func (sm *SM) __adjust(k reflect.Kind, v reflect.Value) reflect.Value {
-	switch k {
-	case reflect.Map, reflect.Slice, reflect.Array, reflect.Ptr:
-		return v
-	default:
-		return v.Elem()
-	}
-}
+// __handle returns field's value parsed with Handler according to tag label.
+// If it is empty, returns initial value.
+func (sm *SM) __handle(input any, tag string) (any, bool) {
+	inputKind := reflect.TypeOf(input).Kind()
 
-// __handle returns string parsed with Handler according to tag.
-// If tag is empty, returns initial string.
-func (sm *SM) __handle(input string, tag string) string {
-	if handler := StructMasker.getHandler(tag); handler != nil {
-		return handler(input)
+	if handler, ok := StructMasker.getHandler(tag); ok {
+		result := handler(input)
+		resultKind := reflect.TypeOf(result).Kind()
+
+		if resultKind == inputKind {
+			return result, true
+		}
 	}
 
-	return input
+	return input, false
 }
