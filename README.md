@@ -16,10 +16,11 @@ Example:
 package main
 
 import (
-	customtags "custom_tags/customtags"
 	"encoding/json"
 	"fmt"
 	"strings"
+	
+	"github.com/afv1/custom_tags"
 )
 
 // EGStruct define maskable struct.
