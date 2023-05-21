@@ -1,11 +1,12 @@
 # structmasker
 
-Simple Golang Struct fields masking pkg with customizable mask handlers for every tag label
+Simple Golang package for Custom Tags.
+Allows You to bind custom funcions to custom tags and then proceed them.
 
 # Getting started
 
 ``` bash
-$ go get -u github.com/afv1/structmasker
+$ go get -u github.com/afv1/custom_tags
 ```
 
 # How to use
@@ -15,7 +16,7 @@ Example:
 package main
 
 import (
-	customtags "custom_tags/structmask"
+	customtags "custom_tags/customtags"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -78,7 +79,7 @@ func main() {
 	fmt.Println(string(initialJSON))
 
 	// print masked marshaled struct.
-	modifiedJSON := ct.Modify(egStruct)
+	modifiedJSON := ct.Proceed(egStruct)
 	jsn, _ := json.Marshal(modifiedJSON)
 	fmt.Println(string(jsn))
 }
