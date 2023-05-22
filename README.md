@@ -1,4 +1,4 @@
-# structmasker
+# customtags
 
 Simple Golang package for Custom Tags.
 Allows You to bind custom funcions to custom tags and then proceed them.
@@ -68,20 +68,20 @@ func main() {
     
     // init Custom Tags with tag name.
     ct := customtags.NewCustomTags("mask")
-	customtags.Bind("test", Test1)
+    customtags.Bind("test", Test1)
 	
-	// bind handlers to custom tag labels.
-	customtags.Bind("cardnumber", CardMaskHandler)
-	customtags.Bind("cardholder", CardHolderHandler)
+    // bind handlers to custom tag labels.
+    customtags.Bind("cardnumber", CardMaskHandler)
+    customtags.Bind("cardholder", CardHolderHandler)
 
-	// print initial marshaled struct.
-	initialJSON, _ := json.Marshal(egStruct)
-	fmt.Println(string(initialJSON))
+    // print initial marshaled struct.
+    initialJSON, _ := json.Marshal(egStruct)
+    fmt.Println(string(initialJSON))
 
-	// print masked marshaled struct.
-	modifiedJSON := ct.Proceed(egStruct)
-	jsn, _ := json.Marshal(modifiedJSON)
-	fmt.Println(string(jsn))
+    // print masked marshaled struct.
+    modifiedJSON := ct.Proceed(egStruct)
+    jsn, _ := json.Marshal(modifiedJSON)
+    fmt.Println(string(jsn))
 }
 ```
 
