@@ -5,7 +5,7 @@ import (
 )
 
 // __normalize returns correct reflect values according to its kind.
-func (c *CT) __normalize(k reflect.Kind, v reflect.Value) reflect.Value {
+func (c *CustomTagsImpl) __normalize(k reflect.Kind, v reflect.Value) reflect.Value {
 	switch k {
 	case reflect.Map, reflect.Slice, reflect.Array, reflect.Ptr:
 		return v
@@ -15,7 +15,7 @@ func (c *CT) __normalize(k reflect.Kind, v reflect.Value) reflect.Value {
 }
 
 // __parse parse data recursively, modify fields data if custom tag labels presented.
-func (c *CT) __parse(field string, v reflect.Value, tag string) reflect.Value {
+func (c *CustomTagsImpl) __parse(field string, v reflect.Value, tag string) reflect.Value {
 	var (
 		orig  = v
 		cpVal reflect.Value
@@ -92,10 +92,10 @@ func (c *CT) __parse(field string, v reflect.Value, tag string) reflect.Value {
 
 // __handle returns field's value parsed with Handler according to tag label.
 // If it is empty, returns initial value.
-func (c *CT) __handle(input any, tag string) (any, bool) {
+func (c *CustomTagsImpl) __handle(input any, tag string) (any, bool) {
 	inputKind := reflect.TypeOf(input).Kind()
 
-	if handler, ok := CustomTagger.getHandler(tag); ok {
+	if handler, ok := CustomTags.getHandler(tag); ok {
 		result := handler(input)
 		resultKind := reflect.TypeOf(result).Kind()
 
