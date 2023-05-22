@@ -69,7 +69,6 @@ func main() {
     
     // init Custom Tags with tag name.
     ct := customtags.NewCustomTags("mask")
-    customtags.Bind("test", Test1)
 	
     // bind handlers to custom tag labels.
     customtags.Bind("cardnumber", CardMaskHandler)
