@@ -72,7 +72,7 @@ func main() {
 	
     // bind handlers to custom tag labels.
     customtags.Bind("cardnumber", CardMaskHandler)
-    customtags.Bind("cardholder", CardHolderHandler)
+    customtags.Bind("cvv", CVVMaskHandler)
 
     // print initial marshaled struct.
     initialJSON, _ := json.Marshal(egStruct)
