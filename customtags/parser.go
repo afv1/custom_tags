@@ -55,9 +55,18 @@ func (c *CustomTagsImpl) __parse(field string, v reflect.Value, tag string) refl
 			label := f.Tag.Get(c.tag)
 			// if field type's kind is ptr or string, cast modified data to interface{} and then to initial type,
 			// only after type casting set modified value to copied struct field.
-			if fVal.Type().Kind() == reflect.Ptr || fVal.Elem().Kind() == reflect.String {
-				s := c.__parse(f.Name, fVal.Elem(), label).Interface().(string)
-				cpVal.Elem().Field(i).Set(reflect.ValueOf(&s))
+			if fVal.Type().Kind() == reflect.Ptr {
+				fVal = fVal.Elem()
+			}
+
+			if fVal.Kind() == reflect.String {
+				s := c.__parse(f.Name, fVal, label).Interface().(string)
+				// if copied Struct is a Pointer, set the string properly.
+				if cpVal.Kind() == reflect.Ptr {
+					cpVal.Elem().Field(i).SetString(s)
+				} else {
+					cpVal.Field(i).SetString(s)
+				}
 			} else {
 				cpVal.Elem().Field(i).Set(c.__parse(f.Name, fVal, label))
 			}
