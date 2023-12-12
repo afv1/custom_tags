@@ -53,6 +53,10 @@ func (c *CustomTagsImpl) __parse(field string, v reflect.Value, tag string) refl
 
 			// get custom tag label.
 			label := f.Tag.Get(c.tag)
+			if label == "" {
+				label = tag
+			}
+
 			// if field type's kind is ptr or string, cast modified data to interface{} and then to initial type,
 			// only after type casting set modified value to copied struct field.
 			if fVal.Type().Kind() == reflect.Ptr {
@@ -89,6 +93,10 @@ func (c *CustomTagsImpl) __parse(field string, v reflect.Value, tag string) refl
 	default:
 		cpVal = reflect.New(orig.Type())
 
+		if v.Kind() == reflect.Ptr && !v.IsNil() {
+			v = v.Elem()
+		}
+
 		if modVal, ok := c.__handle(v.Interface(), tag); ok {
 			cpVal.Elem().Set(reflect.ValueOf(modVal))
 		} else {
@@ -102,6 +110,21 @@ func (c *CustomTagsImpl) __parse(field string, v reflect.Value, tag string) refl
 // __handle returns field's value parsed with Handler according to tag label.
 // If it is empty, returns initial value.
 func (c *CustomTagsImpl) __handle(input any, tag string) (any, bool) {
+	res, ok := __try(input, tag)
+	if res == nil {
+		res = input
+	}
+
+	return res, ok
+}
+
+func __try(input any, tag string) (any, bool) {
+	// cringe for custom structs such as sql.Null* or null.*.
+	defer func() {
+		if r := recover(); r != nil {
+		}
+	}()
+
 	inputKind := reflect.TypeOf(input).Kind()
 
 	if handler, ok := CustomTags.getHandler(tag); ok {
