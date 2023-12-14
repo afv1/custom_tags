@@ -3,10 +3,11 @@ package customtags
 import (
 	"fmt"
 	"reflect"
+	"runtime/debug"
 )
 
 // __normalize returns correct reflect values according to its kind.
-func (c *CustomTagsImpl) __normalize(k reflect.Kind, v reflect.Value) reflect.Value {
+func (c *Impl) __normalize(k reflect.Kind, v reflect.Value) reflect.Value {
 	switch k {
 	case reflect.Map, reflect.Slice, reflect.Array, reflect.Ptr:
 		return v
@@ -15,10 +16,10 @@ func (c *CustomTagsImpl) __normalize(k reflect.Kind, v reflect.Value) reflect.Va
 	}
 }
 
-func (c *CustomTagsImpl) __tryParse(field string, v reflect.Value, tag string) reflect.Value {
+func (c *Impl) __tryParse(field string, v reflect.Value, tag string) reflect.Value {
 	defer func() {
-		if r := recover(); r != nil {
-			fmt.Println("recovered:", r)
+		if r := recover(); r != nil && c.showStackTrace {
+			fmt.Printf("recovered panic: %v\n%s\n", r, debug.Stack())
 		}
 	}()
 
@@ -26,11 +27,13 @@ func (c *CustomTagsImpl) __tryParse(field string, v reflect.Value, tag string) r
 }
 
 // __parse parse data recursively, modify fields data if custom tag labels presented.
-func (c *CustomTagsImpl) __parse(field string, v reflect.Value, tag string) reflect.Value {
+func (c *Impl) __parse(field string, v reflect.Value, tag string) reflect.Value {
 	var (
 		orig  = v
 		cpVal reflect.Value
 	)
+
+	panic("jopa")
 
 	// if input is pointer, dereference it properly.
 	if v.Kind() == reflect.Ptr {
@@ -125,7 +128,7 @@ func (c *CustomTagsImpl) __parse(field string, v reflect.Value, tag string) refl
 
 // __handle returns field's value parsed with Handler according to tag label.
 // If it is empty, returns initial value.
-func (c *CustomTagsImpl) __handle(input any, tag string) (any, bool) {
+func (c *Impl) __handle(input any, tag string) (any, bool) {
 	res, ok := __try(input, tag)
 	if res == nil {
 		res = input

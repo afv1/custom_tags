@@ -10,13 +10,14 @@ type Handler func(any) any
 // Mapper is a map[label]handler_func.
 type Mapper map[string]Handler
 
-type CustomTagsImpl struct {
-	tag     string
-	mappers Mapper
+type Impl struct {
+	tag            string
+	mappers        Mapper
+	showStackTrace bool // print stack trace on recovered panic
 }
 
-func newCustomTagsImpl(tag string) *CustomTagsImpl {
-	return &CustomTagsImpl{tag: tag}
+func newCustomTagsImpl(tag string, showStackTrace bool) *Impl {
+	return &Impl{tag: tag, showStackTrace: showStackTrace}
 }
 
 type CustomTagger interface {
@@ -29,15 +30,26 @@ type CustomTagger interface {
 var CustomTags CustomTagger
 
 // InitCustomTags inits global CustomTags.
-// Example: customtags.InitCustomTags(cfg); customtags.CustomTags.Proceed(model)
-func InitCustomTags(key string) {
-	CustomTags = newCustomTagsImpl(key)
+// Example: customtags.InitCustomTags(key); customtags.CustomTags.Proceed(model)
+func InitCustomTags(key string, showStackTrace ...bool) {
+	_showStackTrace := false
+	if len(showStackTrace) > 0 {
+		_showStackTrace = showStackTrace[0]
+	}
+
+	CustomTags = newCustomTagsImpl(key, _showStackTrace)
 }
 
 // NewCustomTags returns CustomTagger instance for Instant or Dependency Injection usage.
-// Example: sm := customtags.NewCustomTags(cfg); sm.Proceed(model)
-func NewCustomTags(key string) *CustomTagsImpl {
-	sm := newCustomTagsImpl(key)
+// Example: sm := customtags.NewCustomTags(key, true); sm.Proceed(model)
+// If showStackTrace is true, Proceed method prints stack trace of recovered panic.
+func NewCustomTags(key string, showStackTrace ...bool) *Impl {
+	_showStackTrace := false
+	if len(showStackTrace) > 0 {
+		_showStackTrace = showStackTrace[0]
+	}
+
+	sm := newCustomTagsImpl(key, _showStackTrace)
 
 	CustomTags = sm
 
@@ -45,7 +57,7 @@ func NewCustomTags(key string) *CustomTagsImpl {
 }
 
 // bind connects Handler with tag label.
-func (c *CustomTagsImpl) bind(label string, fn Handler) {
+func (c *Impl) bind(label string, fn Handler) {
 	if c.mappers == nil {
 		c.mappers = make(map[string]Handler, 1)
 	}
@@ -54,7 +66,7 @@ func (c *CustomTagsImpl) bind(label string, fn Handler) {
 }
 
 // getHandler returns Handler or nil
-func (c *CustomTagsImpl) getHandler(tag string) (Handler, bool) {
+func (c *Impl) getHandler(tag string) (Handler, bool) {
 	handler, ok := c.mappers[tag]
 
 	return handler, ok
@@ -75,7 +87,7 @@ func Bind[T any](label string, fn func(T) T) {
 }
 
 // Proceed replace tagged fields of the struct with modified by the Handler data.
-func (c *CustomTagsImpl) Proceed(input any) any {
+func (c *Impl) Proceed(input any) any {
 	if input == nil ||
 		(reflect.ValueOf(input).Kind() != reflect.Struct &&
 			reflect.ValueOf(input).Kind() != reflect.Ptr) {
@@ -91,7 +103,7 @@ func (c *CustomTagsImpl) Proceed(input any) any {
 	return ret.Interface()
 }
 
-func (c *CustomTagsImpl) MustProceed(input any) any {
+func (c *Impl) MustProceed(input any) any {
 	if input == nil ||
 		(reflect.ValueOf(input).Kind() != reflect.Struct &&
 			reflect.ValueOf(input).Kind() != reflect.Ptr) {
