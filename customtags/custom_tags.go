@@ -82,5 +82,21 @@ func (c *CustomTagsImpl) Proceed(input any) any {
 		return nil
 	}
 
+	ret := c.__tryParse("", reflect.ValueOf(input), "")
+
+	if !ret.IsValid() {
+		return input
+	}
+
+	return ret.Interface()
+}
+
+func (c *CustomTagsImpl) MustProceed(input any) any {
+	if input == nil ||
+		(reflect.ValueOf(input).Kind() != reflect.Struct &&
+			reflect.ValueOf(input).Kind() != reflect.Ptr) {
+		return nil
+	}
+
 	return c.__parse("", reflect.ValueOf(input), "").Interface()
 }

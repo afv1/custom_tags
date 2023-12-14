@@ -1,6 +1,7 @@
 package customtags
 
 import (
+	"fmt"
 	"reflect"
 )
 
@@ -12,6 +13,16 @@ func (c *CustomTagsImpl) __normalize(k reflect.Kind, v reflect.Value) reflect.Va
 	default:
 		return v.Elem()
 	}
+}
+
+func (c *CustomTagsImpl) __tryParse(field string, v reflect.Value, tag string) reflect.Value {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("recovered:", r)
+		}
+	}()
+
+	return c.__parse(field, v, tag)
 }
 
 // __parse parse data recursively, modify fields data if custom tag labels presented.
@@ -91,6 +102,11 @@ func (c *CustomTagsImpl) __parse(field string, v reflect.Value, tag string) refl
 			cpVal.SetMapIndex(keys[i], c.__parse(keys[i].String(), orig.MapIndex(keys[i]), ""))
 		}
 	default:
+		if reflect.ValueOf(orig).IsZero() {
+			cpVal = orig
+			break
+		}
+
 		cpVal = reflect.New(orig.Type())
 
 		if v.Kind() == reflect.Ptr && !v.IsNil() {
