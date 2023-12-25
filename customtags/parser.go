@@ -33,8 +33,6 @@ func (c *Impl) __parse(field string, v reflect.Value, tag string) reflect.Value 
 		cpVal reflect.Value
 	)
 
-	panic("jopa")
-
 	// if input is pointer, dereference it properly.
 	if v.Kind() == reflect.Ptr {
 		if v.IsNil() {
