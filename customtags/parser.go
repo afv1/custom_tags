@@ -9,6 +9,12 @@ import (
 // __normalize returns correct reflect values according to its kind.
 func (c *Impl) __normalize(k reflect.Kind, v reflect.Value) reflect.Value {
 	switch k {
+	case reflect.Struct:
+		if v.Kind() == reflect.Ptr {
+			return v
+		} else {
+			return v.Elem()
+		}
 	case reflect.Map, reflect.Slice, reflect.Array, reflect.Ptr:
 		return v
 	default:
@@ -83,8 +89,19 @@ func (c *Impl) __parse(field string, v reflect.Value, tag string) reflect.Value 
 				} else {
 					cpVal.Field(i).SetString(s)
 				}
+			} else if fVal.Kind() == reflect.Struct {
+				modVal := c.__parse(f.Name, fVal, label)
+				if modVal.Kind() == reflect.Ptr {
+					cpVal.Elem().Field(i).Set(modVal)
+				} else {
+					cpVal.Field(i).Set(modVal)
+				}
 			} else {
-				cpVal.Elem().Field(i).Set(c.__parse(f.Name, fVal, label))
+				if v.Kind() == reflect.Ptr {
+					cpVal.Field(i).Set(c.__parse(f.Name, fVal, label))
+				} else {
+					cpVal.Elem().Field(i).Set(c.__parse(f.Name, fVal, label))
+				}
 			}
 		}
 	case reflect.Slice, reflect.Array:
