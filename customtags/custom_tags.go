@@ -2,6 +2,7 @@ package customtags
 
 import (
 	"reflect"
+	"sync"
 )
 
 // Handler is a func(any) any.
@@ -11,6 +12,7 @@ type Handler func(any) any
 type Mapper map[string]Handler
 
 type Impl struct {
+	mx             sync.Mutex
 	tag            string
 	mappers        Mapper
 	showStackTrace bool // print stack trace on recovered panic
@@ -27,17 +29,21 @@ type CustomTagger interface {
 	Proceed(input any) (output any)
 }
 
-var CustomTags CustomTagger
+var customTags CustomTagger
 
-// InitCustomTags inits global CustomTags.
-// Example: customtags.InitCustomTags(key); customtags.CustomTags.Proceed(model)
+// InitCustomTags inits global customTags.
+// Example: customtags.InitCustomTags(key); customtags.customTags.Proceed(model)
 func InitCustomTags(key string, showStackTrace ...bool) {
 	_showStackTrace := false
 	if len(showStackTrace) > 0 {
 		_showStackTrace = showStackTrace[0]
 	}
 
-	CustomTags = newCustomTagsImpl(key, _showStackTrace)
+	customTags = newCustomTagsImpl(key, _showStackTrace)
+}
+
+func CT() CustomTagger {
+	return customTags
 }
 
 // NewCustomTags returns CustomTagger instance for Instant or Dependency Injection usage.
@@ -51,7 +57,7 @@ func NewCustomTags(key string, showStackTrace ...bool) *Impl {
 
 	sm := newCustomTagsImpl(key, _showStackTrace)
 
-	CustomTags = sm
+	customTags = sm
 
 	return sm
 }
@@ -62,7 +68,9 @@ func (c *Impl) bind(label string, fn Handler) {
 		c.mappers = make(map[string]Handler, 1)
 	}
 
+	c.mx.Lock()
 	c.mappers[label] = fn
+	c.mx.Unlock()
 }
 
 // getHandler returns Handler or nil
@@ -75,7 +83,7 @@ func (c *Impl) getHandler(tag string) (Handler, bool) {
 // Bind connects custom handler of any type with tag label.
 // Example: customtags.Bind("custom_label", func(string) string {...})
 func Bind[T any](label string, fn func(T) T) {
-	if CustomTags == nil {
+	if customTags == nil {
 		return
 	}
 
@@ -83,7 +91,7 @@ func Bind[T any](label string, fn func(T) T) {
 		return fn(in.(T))
 	}
 
-	CustomTags.bind(label, afn)
+	customTags.bind(label, afn)
 }
 
 // Proceed replace tagged fields of the struct with modified by the Handler data.

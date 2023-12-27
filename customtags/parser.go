@@ -144,7 +144,7 @@ func __try(input any, tag string) (any, bool) {
 
 	inputKind := reflect.TypeOf(input).Kind()
 
-	if handler, ok := CustomTags.getHandler(tag); ok {
+	if handler, ok := customTags.getHandler(tag); ok {
 		result := handler(input)
 		resultKind := reflect.TypeOf(result).Kind()
 
