@@ -92,7 +92,11 @@ func (c *Impl) __parse(field string, v reflect.Value, tag string) reflect.Value 
 			} else if fVal.Kind() == reflect.Struct {
 				modVal := c.__parse(f.Name, fVal, label)
 				if modVal.Kind() == reflect.Ptr {
-					cpVal.Elem().Field(i).Set(modVal)
+					if cpVal.Elem().Field(i).Kind() == reflect.Ptr {
+						cpVal.Elem().Field(i).Set(modVal)
+					} else {
+						cpVal.Elem().Field(i).Set(modVal.Elem())
+					}
 				} else {
 					cpVal.Field(i).Set(modVal)
 				}
