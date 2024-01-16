@@ -1,9 +1,7 @@
 package customtags
 
 import (
-	"fmt"
 	"reflect"
-	"runtime/debug"
 )
 
 // __normalize returns correct reflect values according to its kind.
@@ -20,16 +18,6 @@ func (c *Impl) __normalize(k reflect.Kind, v reflect.Value) reflect.Value {
 	default:
 		return v.Elem()
 	}
-}
-
-func (c *Impl) __tryParse(field string, v reflect.Value, tag string) reflect.Value {
-	defer func() {
-		if r := recover(); r != nil && c.showStackTrace {
-			fmt.Printf("recovered panic: %v\n%s\n", r, debug.Stack())
-		}
-	}()
-
-	return c.__parse(field, v, tag)
 }
 
 // __parse parse data recursively, modify fields data if custom tag labels presented.
@@ -148,29 +136,9 @@ func (c *Impl) __parse(field string, v reflect.Value, tag string) reflect.Value 
 // __handle returns field's value parsed with Handler according to tag label.
 // If it is empty, returns initial value.
 func (c *Impl) __handle(input any, tag string) (any, bool) {
-	res, ok := __try(input, tag)
-	if res == nil {
-		res = input
-	}
-
-	return res, ok
-}
-
-func __try(input any, tag string) (any, bool) {
-	// cringe for custom structs such as sql.Null* or null.*.
-	defer func() {
-		if r := recover(); r != nil {
-		}
-	}()
-
-	inputKind := reflect.TypeOf(input).Kind()
-
-	if handler, ok := customTags.getHandler(tag); ok {
-		result := handler(input)
-		resultKind := reflect.TypeOf(result).Kind()
-
-		if resultKind == inputKind {
-			return result, true
+	if container, ok := customTags.getHandler(tag); ok {
+		if reflect.ValueOf(input).Kind() == container.Kind {
+			return container.Handler(input), true
 		}
 	}
 
